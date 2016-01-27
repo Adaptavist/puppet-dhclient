@@ -33,7 +33,7 @@ describe 'dhclient', :type => 'class' do
         .with_content(/supersede domain-name-servers 8.8.8.8, 8.8.4.4;/)
       
       should contain_file(exit_hook_redhat)
-        .with_content(/nsupdate -k \/etc\/dhcp\/#{server_domain}.update-key <<EOF 2>\/tmp\/hook.error/)
+        .with_content(/nsupdate -k \/etc\/dhcp\/domain.update-key <<EOF 2>\/tmp\/hook.error/)
         .with_content(/server #{name_server}/)
         .with_content(/zone #{server_domain}/)
         .with_content(/show/)
@@ -70,7 +70,7 @@ describe 'dhclient', :type => 'class' do
         .with_content(/supersede domain-search "searchdomain1.com", "searchdomain2.com";/)
       
       should contain_file(exit_hook_redhat)
-        .with_content(/nsupdate -k \/etc\/dhcp\/#{server_domain}.update-key <<EOF 2>\/tmp\/hook.error/)
+        .with_content(/nsupdate -k \/etc\/dhcp\/domain.update-key <<EOF 2>\/tmp\/hook.error/)
         .with_content(/server #{name_server}/)
         .with_content(/zone #{server_domain}/)
         .with_content(/show/)
@@ -104,7 +104,7 @@ describe 'dhclient', :type => 'class' do
         .with_content(/supersede domain-name-servers 8.8.8.8, 8.8.4.4;/)
       
       should contain_file(exit_hook_debian)
-        .with_content(/nsupdate -k \/etc\/dhcp\/#{server_domain}.update-key <<EOF 2>\/tmp\/hook.error/)
+        .with_content(/nsupdate -k \/etc\/dhcp\/domain.update-key <<EOF 2>\/tmp\/hook.error/)
         .with_content(/server #{name_server}/)
         .with_content(/zone #{server_domain}/)
         .with_content(/show/)
