@@ -1,0 +1,15 @@
+### File managed with puppet ###
+### Served by:        '<%= scope.lookupvar('::servername') %>'
+### Module:           '<%= scope.to_hash['module_name'] %>'
+### Template source:  '<%= template_source %>'
+
+option rfc3442-classless-static-routes code 121 = array of unsigned integer 8;
+
+send host-name "<hostname>";
+request subnet-mask, broadcast-address, time-offset, routers,
+        interface-mtu, rfc3442-classless-static-routes, ntp-servers;
+
+supersede domain-name "<%= @domain %>";
+
+<%= @searchdomains and !@searchdomains.empty? ? "supersede domain-search \"#{@searchdomains.flatten.join('", "')}\";" : "" %>
+<%= @dnsservers and !@dnsservers.empty? ? "supersede domain-name-servers #{@dnsservers.flatten.join(', ')};" : "" %>

@@ -1,0 +1,67 @@
+class dhclient(
+    $ns_update_hook_path           = '/etc/dhcp/nsupdate.hook.erb',
+    $dhcp_update_key_template_path = '/etc/dhcp/domain.update-key.erb',
+    $dhcp_update_key_secret        = undef,
+    $nsupdate_ip_source            = '$new_ip_address',
+    $searchdomains                 = [],
+    $dnsservers                    = ['8.8.8.8', '8.8.4.4'],
+    $disable_network_manager       = true,
+    $server_domain,
+    $name_server,
+    $domain
+) {
+    case $::osfamily {
+        Debian: {
+            $network_manager_service = 'network-manager'
+            $exit_hook = '/etc/dhcp/dhclient-exit-hooks.d/nsupdate'
+            $dhclient_binary = '/sbin/dhclient'
+            $restart_require = [File['/etc/dhcp/dhclient.conf'],File['/etc/dhcp/domain.update-key'],File[$exit_hook]]
+        }
+        RedHat: {
+            $network_manager_service = 'NetworkManager'
+            $exit_hook = '/etc/dhcp/dhclient-exit-hooks'
+            if (versioncmp($::operatingsystemrelease,'7') >= 0 and $::operatingsystem != 'Fedora') {
+                $dhclient_binary = '/usr/sbin/dhclient'
+            } else {
+                $dhclient_binary = '/sbin/dhclient'
+            }
+            package { 'bind-utils': ensure => 'installed' }
+            $restart_require = [File['/etc/dhcp/dhclient.conf'],File['/etc/dhcp/domain.update-key'],File[$exit_hook],Package['bind-utils']]
+        }
+        default: {
+            fail("Unsupported operating system family: ${::osfamily}")
+        }
+    }
+
+    if ($dhcp_update_key_secret) {
+        $update_key_path  = "${module_name}/domain.update-key.erb"
+        $update_hook_path = "${module_name}/nsupdate.erb"
+    } else {
+        $update_key_path  = $dhcp_update_key_template_path
+        $update_hook_path = $ns_update_hook_path
+    }
+
+    file {
+        '/etc/dhcp/dhclient.conf':
+            content => template("${module_name}/dhclient.conf.erb");
+        '/etc/dhcp/domain.update-key':
+            content => template($update_key_path);
+        $exit_hook:
+            content => template($update_hook_path),
+            mode    => '0755'
+    }
+
+    # NetworkManager interferes with dhclient hooks, disable it if instructed to do so
+    # This is currently limited to REdHat bashed systems as the Debian/Ubuntu provider erros if it tries to disable a non-existing service
+    if (str2bool($disable_network_manager) and $::osfamily == 'RedHat') {
+        service { $network_manager_service:
+            enable => false,
+            before => Exec['restart dhclient']
+        }
+    }
+    # Use pkill not dhclient -x to ensure IP lease isnt lost
+    exec { 'restart dhclient':
+        command => "/usr/bin/pkill dhclient; ${dhclient_binary}",
+        require => $restart_require,
+    }
+}
