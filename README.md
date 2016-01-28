@@ -25,7 +25,9 @@ In environments that use NAT the default method of identifying the systems exter
 ## Example
 
 ```
-dhclient::
+dhclient::domain: 'example.com'
+dhclient::server_domain: 'an.example.com'
+dhclient::name_server: 'ns.example.com'
 dhclient::dhcp_update_key_secret: "some secret key, preferrably encrypted using eyaml"
 dhclient::nsupdate_ip_source: '$new_ip_address'
 dhclient::dnsservers:
