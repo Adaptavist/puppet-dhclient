@@ -1,6 +1,7 @@
 class dhclient(
     $ns_update_hook_path           = '/etc/dhcp/nsupdate.hook.erb',
     $dhcp_update_key_template_path = '/etc/dhcp/domain.update-key.erb',
+    $update_key_path               = '/etc/dhcp/domain.update-key',
     $dhcp_update_key_secret        = undef,
     $nsupdate_ip_source            = '$new_ip_address',
     $searchdomains                 = [],
@@ -34,18 +35,18 @@ class dhclient(
     }
 
     if ($dhcp_update_key_secret) {
-        $update_key_path  = "${module_name}/domain.update-key.erb"
+        $update_key_template_path  = "${module_name}/domain.update-key.erb"
         $update_hook_path = "${module_name}/nsupdate.erb"
     } else {
-        $update_key_path  = $dhcp_update_key_template_path
+        $update_key_template_path  = $dhcp_update_key_template_path
         $update_hook_path = $ns_update_hook_path
     }
 
     file {
         '/etc/dhcp/dhclient.conf':
             content => template("${module_name}/dhclient.conf.erb");
-        '/etc/dhcp/domain.update-key':
-            content => template($update_key_path);
+        $update_key_path:
+            content => template($update_key_template_path);
         $exit_hook:
             content => template($update_hook_path),
             mode    => '0755'

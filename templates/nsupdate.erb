@@ -3,7 +3,7 @@
 ### Module:           '<%= scope.to_hash['module_name'] %>'
 ### Template source:  '<%= template_source %>'
 
-nsupdate -k /etc/dhcp/domain.update-key <<EOF 2>/tmp/hook.error
+nsupdate -k <%= @update_key_path %> <<EOF 2>/tmp/hook.error
 server <%=name_server%>
 zone <%=server_domain%>
 update delete $( hostname -s ).<%=server_domain%>. A
