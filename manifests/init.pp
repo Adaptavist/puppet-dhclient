@@ -16,7 +16,7 @@ class dhclient(
             $network_manager_service = 'network-manager'
             $exit_hook = '/etc/dhcp/dhclient-exit-hooks.d/nsupdate'
             $dhclient_binary = '/sbin/dhclient'
-            $restart_require = [File['/etc/dhcp/dhclient.conf'],File['/etc/dhcp/domain.update-key'],File[$exit_hook]]
+            $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$update_key_path],File[$exit_hook]]
         }
         RedHat: {
             $network_manager_service = 'NetworkManager'
@@ -27,7 +27,7 @@ class dhclient(
                 $dhclient_binary = '/sbin/dhclient'
             }
             package { 'bind-utils': ensure => 'installed' }
-            $restart_require = [File['/etc/dhcp/dhclient.conf'],File['/etc/dhcp/domain.update-key'],File[$exit_hook],Package['bind-utils']]
+            $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$update_key_path],File[$exit_hook],Package['bind-utils']]
         }
         default: {
             fail("Unsupported operating system family: ${::osfamily}")
