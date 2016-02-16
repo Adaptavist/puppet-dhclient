@@ -1,4 +1,5 @@
 # Dhclient Module
+[![Build Status](https://travis-ci.org/Adaptavist/puppet-dhclient.svg?branch=master)](https://travis-ci.org/Adaptavist/puppet-dhclient)
 
 ## Overview
 
