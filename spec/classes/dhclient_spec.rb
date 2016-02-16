@@ -120,5 +120,30 @@ describe 'dhclient', :type => 'class' do
         )
     end
   end
+  context "Should disable network manager on debian and setup dhconfig but not nsupdate key or hook" do
+    let(:facts){{
+      :osfamily => 'Debian',
+      }}
+    let(:params) {{
+      :server_domain => server_domain,
+      :name_server => name_server,
+      :dhcp_update_key_secret => secret,
+      :domain => domain,
+      :create_dhclient_exit_hook => false,
+      }}
+    it do
+      should contain_file('/etc/dhcp/dhclient.conf')
+        .with_content(/supersede domain-name "#{domain}";/)
+        .with_content(/supersede domain-name-servers 8.8.8.8, 8.8.4.4;/)
+      
+      should_not contain_file(exit_hook_debian)
+      should_not contain_file(dhcp_update_key_template_path)
+      should_not contain_service(debian_service)
+
+      should contain_exec('restart dhclient').with(
+        'command' => "/usr/bin/pkill dhclient; #{dhclient_binary}",
+        )
+    end
+  end
 
 end
