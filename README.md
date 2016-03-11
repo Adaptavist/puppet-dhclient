@@ -3,7 +3,7 @@
 
 ## Overview
 
-The **Dhclient** module update DNS records for host that use DHCP for network configuration
+The **Dhclient** module update DNS records for host that use DHCP for network configuration, it currenty supports the creation of an dhclient exit hook to update DNS via either nsupdate or a custom script to update Amazon Route 53
 
 ## Configuration
 
@@ -21,9 +21,9 @@ The following parameters are configurable in Hiera.
 
 ## Environments that use NAT
 
-In environments that use NAT the default method of identifying the systems external IP address actually ends up setting the internal IP address within DNS.
+In environments that use NAT the default method of identifying the systems external IP address actually ends up setting the internal IP address within DNS as the $new_ip_address variable contains the internal not external IP address.  In this situation it is advisable to change the "nsupdate_ip_source" param to get the IP from another source (AWS meta-data API or external web site...), an example would be $(curl ifconfig.co), and would be set like this via hiera `dhclient::nsupdate_ip_source: '$(curl ifconfig.co)'`
 
-## Example
+## Examples
 
 ```
 dhclient::domain: 'example.com'

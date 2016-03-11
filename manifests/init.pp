@@ -2,7 +2,11 @@ class dhclient(
     $ns_update_hook_path           = '/etc/dhcp/nsupdate.hook.erb',
     $dhcp_update_key_template_path = '/etc/dhcp/domain.update-key.erb',
     $update_key_path               = '/etc/dhcp/domain.update-key',
+    $dhcp_update_user              = undef,
     $dhcp_update_key_secret        = undef,
+    $dhcp_update_zone_id           = undef,
+    $dhcp_update_ttl               = '300',
+    $dhcp_update_hook_type         = 'nsupdate',
     $nsupdate_ip_source            = '$new_ip_address',
     $searchdomains                 = [],
     $dnsservers                    = ['8.8.8.8', '8.8.4.4'],
@@ -12,6 +16,7 @@ class dhclient(
     $name_server,
     $domain
 ) {
+    validate_re($dhcp_update_hook_type, ['^nsupdate$', '^route53$'])
     case $::osfamily {
         Debian: {
             $network_manager_service = 'network-manager'
@@ -33,14 +38,6 @@ class dhclient(
         }
     }
 
-    if ($dhcp_update_key_secret) {
-        $update_key_template_path  = "${module_name}/domain.update-key.erb"
-        $update_hook_path = "${module_name}/nsupdate.erb"
-    } else {
-        $update_key_template_path  = $dhcp_update_key_template_path
-        $update_hook_path = $ns_update_hook_path
-    }
-
     # create dhclient config, this includes domain, search domain and dns servers
     file { '/etc/dhcp/dhclient.conf':
             content => template("${module_name}/dhclient.conf.erb");
@@ -48,24 +45,47 @@ class dhclient(
 
     # if required create dhclient exit hook and nsupdate key
     if str2bool($create_dhclient_exit_hook) {
-        file {
-            $update_key_path:
+        # if we are creating nsupdate exit hook create the udate key and set the requirements for service restart
+        if ( $dhcp_update_hook_type == 'nsupdate' ) {
+            if ($dhcp_update_key_secret) {
+                $update_key_template_path  = "${module_name}/domain.update-key.erb"
+                $update_hook_path = "${module_name}/nsupdate_exithook.erb"
+            } else {
+                $update_key_template_path  = $dhcp_update_key_template_path
+                $update_hook_path = $ns_update_hook_path
+            }
+
+            file { $update_key_path:
                 content => template($update_key_template_path);
-            $exit_hook:
+            }
+
+            if ($::osfamily == 'Debian') {
+                $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$update_key_path],File[$exit_hook]]
+            } elsif ($::osfamily == 'RedHat') {
+                $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$update_key_path],File[$exit_hook],Package['bind-utils']]
+            }
+        # if however we are creating a route53 exit hook just set the requirements for service restart
+        } elsif ( $dhcp_update_hook_type == 'route53' ) {
+            $update_hook_path = "${module_name}/route53_exithook.erb"
+            if ($::osfamily == 'Debian') {
+                $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$exit_hook]]
+            } elsif ($::osfamily == 'RedHat') {
+                $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$exit_hook],Package['bind-utils']]
+            }
+        }
+        
+        # generate the actual exit hook
+        file { $exit_hook:
                 content => template($update_hook_path),
                 mode    => '0755'
         }
-        if ($::osfamily == 'Debian') {
-            $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$update_key_path],File[$exit_hook]]
-        } elsif ($::osfamily == 'RedHat') {
-            $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$update_key_path],File[$exit_hook],Package['bind-utils']]
-        }
+
     } else {
         $restart_require = [File['/etc/dhcp/dhclient.conf']]
     }
 
     # NetworkManager interferes with dhclient hooks, disable it if instructed to do so
-    # This is currently limited to REdHat bashed systems as the Debian/Ubuntu provider erros if it tries to disable a non-existing service
+    # This is currently limited to RedHat based systems as the Debian/Ubuntu provider erros if it tries to disable a non-existing service
     if (str2bool($disable_network_manager) and $::osfamily == 'RedHat') {
         service { $network_manager_service:
             enable => false,
