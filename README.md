@@ -11,7 +11,11 @@ The following parameters are configurable in Hiera.
 
 * `dnsservers` an array of name server to use in hostname lookups
 * `searchdomains` a array of domains to append to unqualified host name when doing a lookup.
-* `dhcp_update_key_secret` a secret key for updating via DHCP. Forces use of this module's templates for 'dyn.adaptavist.com.update-key' and the dhclient exit hook.
+* `dhcp_update_hook_type ` determines what type of hook to create, currently only 'nsupdate' and 'route53' are supported.  By default this is set to **'nsupdate'**
+* `dhcp_update_key_secret` a secret key for updating via DHCP. Forces use of this module's templates for 'dyn.adaptavist.com.update-key' and the dhclient exit hook.  This is only needed if using the 'nsupdate' hook type
+* `dhcp_update_user` the user to use to perform the DNS update.  This is only needed if using the 'route53' hook type
+* `dhcp_update_zone_id` the DNS zone id to update.  This is only needed if using the 'route53' hook type
+* `dhcp_update_ttl`  the Time To Live for the new DNS entry. By default this is set to **'300'**
 * `nsupdate_ip_source` where the external IP address, used by the dhclient exit hook, should be sourced. By default this is set to **'$new_ip_address'**
 * `disable_network_manager` disabled the NetworkManager if set to true, NetworkManager interferes with the dhclient hooks
 * `server_domain` - server domain definition for nsupdate
