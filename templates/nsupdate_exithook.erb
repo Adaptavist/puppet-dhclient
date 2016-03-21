@@ -7,7 +7,7 @@ nsupdate -k <%= @update_key_path %> <<EOF 2>/tmp/hook.error
 server <%=@name_server%>
 zone <%=@server_domain%>
 update delete $( hostname -s ).<%=@server_domain%>. A
-update add $( hostname -s ).<%=@server_domain%>. 300 A <%= @nsupdate_ip_source %>
+update add $( hostname -s ).<%=@server_domain%>. <%= @dhcp_update_ttl %> A <%= @nsupdate_ip_source %>
 show
 send
 EOF
