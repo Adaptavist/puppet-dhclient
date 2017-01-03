@@ -1,4 +1,7 @@
 class dhclient(
+    $server_domain,
+    $name_server,
+    $domain,
     $ns_update_hook_path           = '/etc/dhcp/nsupdate.hook.erb',
     $dhcp_update_key_template_path = '/etc/dhcp/domain.update-key.erb',
     $update_key_path               = '/etc/dhcp/domain.update-key',
@@ -12,9 +15,6 @@ class dhclient(
     $dnsservers                    = ['8.8.8.8', '8.8.4.4'],
     $disable_network_manager       = true,
     $create_dhclient_exit_hook     = true,
-    $server_domain,
-    $name_server,
-    $domain
 ) {
     validate_re($dhcp_update_hook_type, ['^nsupdate$', '^route53$'])
     case $::osfamily {
@@ -73,7 +73,7 @@ class dhclient(
                 $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$exit_hook],Package['bind-utils']]
             }
         }
-        
+
         # generate the actual exit hook
         file { $exit_hook:
                 content => template($update_hook_path),
