@@ -18,12 +18,12 @@ class dhclient(
 ) {
     validate_re($dhcp_update_hook_type, ['^nsupdate$', '^route53$'])
     case $::osfamily {
-        Debian: {
+        'Debian': {
             $network_manager_service = 'network-manager'
             $exit_hook = '/etc/dhcp/dhclient-exit-hooks.d/nsupdate'
             $dhclient_binary = '/sbin/dhclient'
         }
-        RedHat: {
+        'RedHat': {
             $network_manager_service = 'NetworkManager'
             $exit_hook = '/etc/dhcp/dhclient-exit-hooks'
             if (versioncmp($::operatingsystemrelease,'7') >= 0 and $::operatingsystem != 'Fedora') {

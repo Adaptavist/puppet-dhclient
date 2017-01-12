@@ -97,6 +97,7 @@ describe 'dhclient', :type => 'class' do
   context "Should disable network manager on redhat < 7 and setup dhconfig, nsupdate with searchdomains" do
     let(:facts){{
       :osfamily => 'RedHat',
+      :operatingsystemrelease => '6.0'
       }}
     let(:params) {{
       :searchdomains => ['searchdomain1.com', 'searchdomain2.com'],
