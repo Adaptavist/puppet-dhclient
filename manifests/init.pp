@@ -92,6 +92,9 @@ class dhclient(
             enable => false,
             before => Exec['restart dhclient']
         }
+
+        # ensure this change is made before packages are installed
+        Service[$network_manager_service] -> Package<| |>
     }
     # Use pkill not dhclient -x to ensure IP lease isnt lost
     exec { 'restart dhclient':
