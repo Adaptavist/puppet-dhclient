@@ -50,6 +50,7 @@ describe 'dhclient', :type => 'class' do
         .with_content(/algorithm HMAC-SHA512;/)
         .with_content(/key #{server_domain}. {/)
       should contain_service(redhat_service).with(
+        'ensure' => 'stopped',
         'enable' => 'false',
         )
       should contain_exec('restart dhclient').with(

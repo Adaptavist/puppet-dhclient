@@ -88,9 +88,13 @@ class dhclient(
     # This is currently limited to RedHat based systems as the Debian/Ubuntu provider erros if it tries to disable a non-existing service
     if (str2bool($disable_network_manager) and $::osfamily == 'RedHat') {
         service { $network_manager_service:
+            ensure => 'stopped',
             enable => false,
             before => Exec['restart dhclient']
         }
+
+        # ensure this change is made before packages are installed
+        Service[$network_manager_service] -> Package<| |>
     }
     # Use pkill not dhclient -x to ensure IP lease isnt lost
     exec { 'restart dhclient':
