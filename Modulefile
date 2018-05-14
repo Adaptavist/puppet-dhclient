@@ -1,5 +1,5 @@
 name 'adaptavist/dhclient'
-version '1.0.1'
+version '1.0.2'
 source 'https://github.com/Adaptavist/puppet-dhclient'
 author 'adaptavist'
 summary 'simple_networking puppet module'

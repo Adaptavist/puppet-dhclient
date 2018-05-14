@@ -40,7 +40,8 @@ class dhclient(
 
     # create dhclient config, this includes domain, search domain and dns servers
     file { '/etc/dhcp/dhclient.conf':
-            content => template("${module_name}/dhclient.conf.erb");
+            content => template("${module_name}/dhclient.conf.erb"),
+            notify  => Exec['restart dhclient']
     }
 
     # if required create dhclient exit hook and nsupdate key
@@ -77,7 +78,8 @@ class dhclient(
         # generate the actual exit hook
         file { $exit_hook:
                 content => template($update_hook_path),
-                mode    => '0755'
+                mode    => '0755',
+                notify  => Exec['restart dhclient']
         }
 
     } else {
@@ -98,7 +100,9 @@ class dhclient(
     }
     # Use pkill not dhclient -x to ensure IP lease isnt lost
     exec { 'restart dhclient':
-        command => "/usr/bin/pkill dhclient; ${dhclient_binary}",
-        require => $restart_require,
+        command     => "/usr/bin/pkill dhclient; ${dhclient_binary}",
+        require     => $restart_require,
+        refreshonly => true,
+
     }
 }
