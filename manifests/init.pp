@@ -74,7 +74,6 @@ class dhclient(
                 ensure => 'installed'
             }
 
-            $update_hook_path = "${module_name}/route53_exithook.erb"
             if ($::osfamily == 'Debian') {
                 $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$exit_hook],Package['openssl']]
             } elsif ($::osfamily == 'RedHat') {
