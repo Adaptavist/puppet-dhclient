@@ -68,10 +68,17 @@ class dhclient(
         # if however we are creating a route53 exit hook just set the requirements for service restart
         } elsif ( $dhcp_update_hook_type == 'route53' ) {
             $update_hook_path = "${module_name}/route53_exithook.erb"
+
+            # ensure openssl is instaled, needed by the hook
+            package{ 'openssl':
+                ensure => 'installed'
+            }
+
+            $update_hook_path = "${module_name}/route53_exithook.erb"
             if ($::osfamily == 'Debian') {
-                $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$exit_hook]]
+                $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$exit_hook],Package['openssl']]
             } elsif ($::osfamily == 'RedHat') {
-                $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$exit_hook],Package['bind-utils']]
+                $restart_require = [File['/etc/dhcp/dhclient.conf'],File[$exit_hook],Package['bind-utils'],Package['openssl']]
             }
         }
 
