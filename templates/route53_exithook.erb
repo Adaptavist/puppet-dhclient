@@ -99,6 +99,7 @@ function updateip() {
   if [ "$?" -ne "0" ]; then
     echo "Failed to update $Hostname.$Domain: "$Result
   fi
+  echo $Result > /tmp/dhclient-result
 
 }
 #fi
